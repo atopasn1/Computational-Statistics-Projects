@@ -382,11 +382,12 @@ improved_plot <- chocolate %>%
         x = as.factor(review_date),
         y = rating,
     )) +
-    geom_boxplot(color = "midnightblue", fill = "lightblue")+
+    geom_violin(color = "midnightblue", fill = "lightblue")+
   labs(title = "Ratings of Globally Known Chocolates From 2006 to 2021", x = "Date (in years)", y ="Rating", subtitle = "Chocolate ratings were taken from a diverse range of companies and ranked based on taste.")+
-  theme(axis.text.x = element_text(size=5, angle = 70), axis.text.y = element_text(size=5), title = element_text(size = 7), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(size = 5))
+  theme(axis.text.x = element_text(size=5, angle = 70), axis.text.y = element_text(size=5), title = element_text(size = 7), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(size = 5))+
+   geom_boxplot(width = 0.1)
 
-improved_plot
+improved_plot #change the last thing to be a summary statistic, geom_smooth would be good to add here, geom_smooth(method = "lm"),  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))
 ```
 1. I added an x and y axis that is more informative and I added a title so that upon first glance at the graph you can see what it might be about.
 2. I made the X and Y axis as well as the title larger so it is easier to read upon first glance and if someone was reading it at a distance. I also moved the text of the x axis at a slight angle so it fits in better.
@@ -394,6 +395,6 @@ improved_plot
 4. I added a dark blue color to the plot so it is more distinct and visible, especially from far away.
 5.I cleaned up the grid lines behind the graph to make it less busy.
 6.I added a subtitle to provide more information on the graph at a quick glance and then I made it an appropriate size.
-7.This may not be allowed, but I changed the graph from violin to boxplot. I thought it would be better to have this type of graph to see the change the mean value over time and the quartiles as opposed to a violin plot which does not offer as much information.
+7.I added a boxplot overlay. I thought it would be better to have this type of graph to see the change the mean value over time and the quartiles as opposed to a violin plot which does not offer as much information.
 
 
