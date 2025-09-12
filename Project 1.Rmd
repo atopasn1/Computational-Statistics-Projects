@@ -156,7 +156,7 @@ Top_Reviews <- More_Than_10_Reviews %>%
 
 Top_Reviews
 ```
-Congo, Cuba and Vietnam are the top countries when you remove the countries with less than 10 reviews.
+Solomon Islands, Cuba and Congo are the top countries when you remove the countries with less than 10 reviews.
 
 Problem 7
 ```{r large-plot, fig.width=15, fig.height=15}
@@ -175,7 +175,7 @@ Mutated_Chocolate <- More_Than_50_Reviews %>%
     cocoa_percent >= 90 ~ ">=90"
   ))
 
-Mutated_Chocolate$Cocoa_Percentage_Groupings
+#Mutated_Chocolate$Cocoa_Percentage_Groupings
 
 #Using the new column described in #2, re-order the factor levels (if needed) to be starting with the smallest percentage group and increasing to the largest percentage group (Hint check out the fct_relevel() function from forcats).
 
@@ -186,7 +186,6 @@ levels(Mutated_Chocolate$Cocoa_Percentage_Groupings)
 
 #For each country, make a set of four side-by-side boxplots plotting the groups on the x-axis and the ratings on the y-axis. These plots should be faceted by country.
 
-#More_Than_50_Reviews %>% group_by(country_of_bean_origin) %>%  summarize(n =n()) -> so there shold be at least 15 plots times 4 total
 
 ggplot(Mutated_Chocolate, aes(x=Cocoa_Percentage_Groupings, y = rating)) +
   geom_boxplot(width = 0.8)+
@@ -194,7 +193,7 @@ ggplot(Mutated_Chocolate, aes(x=Cocoa_Percentage_Groupings, y = rating)) +
   theme(axis.text.x = element_text(size = 10, angle = 90, vjust = 1), axis.text.y = element_text(size =10), strip.text = element_text(size =15))
 
 ```
-On average, which category of chocolate percentage is most highly rated? Do these countries mostly agree or are there disagreements? -> It seems that the two midd categories of chocolate are the most highly rated. I would say that most countries agree however there is missing data from several countries, such that they only have two categories of chocolate percentage. The addition of more data may change this.
+On average, which category of chocolate percentage is most highly rated? Do these countries mostly agree or are there disagreements? -> It seems that the two middle categories of chocolate are the most highly rated. I would say that most countries agree however there is missing data from several countries, such that they only have two categories of chocolate percentage. The addition of more data may change this.
 
 Part 2
 ```{r}
@@ -241,7 +240,9 @@ NA_Values <- No_Blend %>%
 
 NA_Values
 
-NA_Values %>%  group_by(country) %>%  summarize(n=n()) #11 Counties that need to be changed
+NA_Values %>%  
+  group_by(country) %>%  
+  summarize(n=n()) #11 Counties that need to be changed
 
 Fixed_noblend <- No_Blend %>% 
   mutate(continent = case_when(
@@ -258,12 +259,15 @@ Fixed_noblend <- No_Blend %>%
     country == "St. Lucia" ~ "Americas",
     TRUE ~ continent
   ))
+#note to self: you have to add true at the end because if not it will mutate everything else that is not part of the above command to be NA
 
 test_na <- Fixed_noblend %>% 
   filter(is.na(continent))
 
 test_na
-test_na %>%  group_by(country) %>%  summarize(n=n())
+test_na %>%  
+  group_by(country) %>%  
+  summarize(n=n())
 
 
 Violin_Ch_2 <- ggplot(Fixed_noblend, aes(x=continent, y = rating)) +
@@ -336,6 +340,8 @@ long_chocolate
 
 Part 4
 ```{r plot again, fig.width=15, fig.height=7}
+#Use the functions in ggplot2 package to make a scatter plot of the mean_scores (y-axis) over time (x-axis). There should be one plot (facet) for each feature. For full credit, your plot should include:An overall title for the plot and a subtitle summarizing key trends that you found. Also include a caption in the figure with your name.Both the observed points for the mean_score, but also a smoothed non-linear pattern of the trendAll plots should be shown in the one figureThere should be an informative x-axis and y-axis label
+
 scatter_c <- ggplot(data = long_chocolate, aes(x = review_date, y = mean_score))+
   geom_point()+
   facet_wrap(~feature)+
@@ -362,16 +368,16 @@ bad_plot <- ggplot(data = chocolate, aes(x= ingredients, y= rating))+
 bad_plot
 
 ```
--For this plot I chose to plot ingredients and ratings in a violin plot. I chose to use the original ingredients column as the X and now the binary version that we created, making it hard to read and interpret.
--I made the X axis incredibly tiny. This makes it virtually undreadable so you don't know what youre looking at.
+-For this plot I chose to plot ingredients and ratings in a violin plot. I chose to use the original ingredients column as the X and now the binary version that we created, making it hard to read and interpret. For a more useful graph I should have done something like the one we made for part 4 where the individual features are faceted.
+-I made the X axis incredibly tiny. This makes it virtually unreadable so you don't know what you're looking at and forces the reader to find this information elsewhere.
 -I made the color for the x-axis a neon color that is unreadable so that even if the text was visible it would hurt the reader to look at it.
--I made the Y-axis incredibly large such that it looks strange and makes the graph hard to read.
--I flipped the Y-axis text upside down so that it becomes even more difficult to read.
--I made the Y-axis a strange pink color that is different from the colors of the rest of the text of the graph.
--The title of the graph is so big it wraps around the graph and compresses it making it hard to read such a small graph.
--The title is upside down a different color than the rest of the graph so that you have no idea what youre looking at when you look at an already badly made and tiny graph.
--The actual color of the graph is a mix of 3 colors that are not color-blind friendly which means that a portion of the population will not be able to observe it acurately.
--The x and Y axis are not labled in a helpful manner and neither is the title so that even if things were not upside down you would not be able to understand what you are looking at.
+-I made the Y-axis incredibly large such that it looks strange and makes the graph hard to read. This forces the reader to look at this graph for much longer.
+-I flipped the Y-axis text upside down so that it becomes even more difficult to read.In a good graph it may be useful to have the text at a angle but fully upside down doesn't work.
+-I made the Y-axis a strange pink color that is different from the colors of the rest of the text of the graph. In a better graph I would try and keep the color of all of the text more consistent.
+-The title of the graph is so big it wraps around the graph and compresses it making it hard to read such a small graph.In a better graph it would be big but not so big it is a problem.
+-The title is upside down and a different color than the rest of the graph so that you have no idea what your'e looking at when you look at an already badly made and tiny graph.
+-The actual color of the graph is a mix of 3 colors that are not color-blind friendly. For a future better graph I would want to use one of the pre-set color palettes in R that are color blind friendly.
+-The x and Y axis are not labled in a helpful manner and neither is the title so that even if things were not upside down you would not be able to understand what you are looking at. A future better graph would have a more helpful set of axis.
 
 Part 6
 ```{r}
@@ -382,7 +388,7 @@ improved_plot <- chocolate %>%
         x = as.factor(review_date),
         y = rating,
     )) +
-    geom_violin(color = "midnightblue", fill = "lightblue")+
+    geom_violin(color = "blue", fill = "blue")+
   labs(title = "Ratings of Globally Known Chocolates From 2006 to 2021", x = "Date (in years)", y ="Rating", subtitle = "Chocolate ratings were taken from a diverse range of companies and ranked based on taste.")+
   theme(axis.text.x = element_text(size=5, angle = 70), axis.text.y = element_text(size=5), title = element_text(size = 7), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(size = 5))+
    geom_boxplot(width = 0.1)
@@ -391,10 +397,14 @@ improved_plot #change the last thing to be a summary statistic, geom_smooth woul
 ```
 1. I added an x and y axis that is more informative and I added a title so that upon first glance at the graph you can see what it might be about.
 2. I made the X and Y axis as well as the title larger so it is easier to read upon first glance and if someone was reading it at a distance. I also moved the text of the x axis at a slight angle so it fits in better.
-3.I got rid of the fill and the key because it was redundant data and it did not show the years well.
-4. I added a dark blue color to the plot so it is more distinct and visible, especially from far away.
+3.I got rid of the fill and the key because it was redundant data and it did not show the years well. The X axis already has that information.
+4. I added a blue color to the plot so it is more distinct and visible, especially from far away. This also helps it stand out from the grey background.
 5.I cleaned up the grid lines behind the graph to make it less busy.
 6.I added a subtitle to provide more information on the graph at a quick glance and then I made it an appropriate size.
 7.I added a boxplot overlay. I thought it would be better to have this type of graph to see the change the mean value over time and the quartiles as opposed to a violin plot which does not offer as much information.
 
+```{r}
+options(width = 120)
+sessioninfo::session_info()
+```
 
