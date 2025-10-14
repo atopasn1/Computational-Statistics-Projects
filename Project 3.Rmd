@@ -1,0 +1,150 @@
+---
+title: "Project3"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+library(dplyr)
+library(lubridate)
+library(forcats)
+library(ggplot2)
+```
+
+```{r}
+#Loading in the Data
+
+library("here")
+rds_files <- c("b_lyrics.RDS", "ts_lyrics.RDS", "sales.RDS")
+## Check whether we have all 3 files
+if (any(!file.exists(here("data", rds_files)))) {
+    ## If we don't, then download the data
+    b_lyrics <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/beyonce_lyrics.csv")
+    ts_lyrics <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv")
+    sales <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/sales.csv")
+
+    ## Then save the data objects to RDS files
+    saveRDS(b_lyrics, file = here("data", "b_lyrics.RDS"))
+    saveRDS(ts_lyrics, file = here("data", "ts_lyrics.RDS"))
+    saveRDS(sales, file = here("data", "sales.RDS"))
+}
+
+
+b_lyrics <- readRDS(here("data", "b_lyrics.RDS"))
+ts_lyrics <- readRDS(here("data", "ts_lyrics.RDS"))
+sales <- readRDS(here("data", "sales.RDS"))
+```
+
+Part 1:Explore Album Sales
+
+Part 1A
+```{r}
+#Use lubridate to create a column called released that is a Date class. However, to be able to do this, you first need to use stringr to search for pattern that matches things like this “(US)[51]” in a string like this “September 1, 2006 (US)[51]” and removes them. (Note: to get full credit, you must create the regular expression).
+
+#String Search/Regular Expression-we are looking at the released column and there are a few rows that have data after the release date
+
+sales$released <- str_replace(string = sales$released, pattern = "\\(.+\\)\\[.+\\]$", replace = " ")
+#still am confused why this needs to have the plus, is that something that needs to be specified each time
+sales$released <- str_trim(sales$released)
+#I am getting rid of the extra whitespace in order to make downstream functions easier to use
+sales$released
+
+#now we need to use lubridate
+sales$released <- mdy(sales$released) #is this okay that it is not in the standard format?
+
+class(sales$released)#shows now as date
+```
+```{r}
+#Use forcats to create a factor called country (Note: you may need to collapse some factor levels).
+
+unique(sales$country)
+
+sales <- sales %>% 
+  mutate(country = fct_collapse(country,
+                                WW = c("World","WW")))
+
+unique(sales$country)
+
+class(sales$country)
+
+```
+```{r}
+#Transform the sales into a unit that is album sales in millions of dollars.
+
+sales <- sales %>% 
+  mutate(sales = sales / 1000000)
+
+sales <- sales %>% 
+  rename("Sales (in Millions)" = "sales")
+
+sales$`Sales (in Millions)`
+```
+```{r}
+sales_final <- sales %>% 
+  filter(country %in% c( "UK" , "US", "WW"))
+
+sales_final
+```
+
+Part 1B
+```{r}
+#1A: Keep only album sales from the US.
+
+sales_us <- sales_final %>% 
+  filter(country == "US")
+
+#Create a new column called years_since_release corresponding to the number of years since the release of each album from Beyoncé and Taylor Swift. This should be a whole number and you should round down to “14” if you get a non-whole number like “14.12” years. (Hint: you may find the interval() function from lubridate helpful here, but this not the only way to do this.)
+
+sales_us$years_since_release <- year(today()) - year(sales_us$released)
+#do i need to do this in a way where the year is always up to date
+
+#Calculate the most recent, oldest, and the median years since albums were released for both Beyoncé and Taylor Swift.
+
+#does this make sense as median year?
+sales_us %>% 
+  group_by(artist) %>% 
+  summarize(Median_album_age = median(years_since_release), Oldest_Release = max(years_since_release), Most_Recent_Release = min(years_since_release))
+
+
+
+```
+
+Part 1C
+```{r}
+#Calculate the total album sales for each artist and for each country (only sales from the UK, US, and World).Note: assume that the World sales do not include the UK and US ones.
+
+data_sum <- sales_final %>% 
+  group_by(artist, country) %>% 
+  summarize("Sales(Millions)" =sum(`Sales (in Millions)`))
+
+data_sum
+
+ggplot(data_sum, aes(fill=artist, y=`Sales(Millions)`, x=country)) + 
+    geom_bar(position="fill", stat="identity")
+
+#need to make this look nicer and also make sure this is the thing they want
+```
+Part 1D
+```{r}
+world_sales <- sales_final %>% 
+  filter(country == "WW")
+
+ggplot(data =world_sales,aes(x = fct_reorder(title, `Sales (in Millions)`), y = `Sales (in Millions)`, fill = artist))+ #needto use backtick because of the way I named my columns!
+  geom_col()+
+  coord_flip()#so why does this work? I need to look at this again
+#again need to add all the necesarry stuff
+
+```
+Part 1E
+```{r}
+ggplot(data = sales_final, aes(x=released, y =`Sales (in Millions)`, color= artist))+
+  geom_point()+
+  facet_wrap("country")
+
+#again need to add all the stuff
+```
+Part 2:Exploring Sentiment of Lyrics
+
+
