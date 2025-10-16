@@ -11,6 +11,8 @@ library(dplyr)
 library(lubridate)
 library(forcats)
 library(ggplot2)
+library(tidytext)
+
 ```
 
 ```{r}
@@ -147,4 +149,233 @@ ggplot(data = sales_final, aes(x=released, y =`Sales (in Millions)`, color= arti
 ```
 Part 2:Exploring Sentiment of Lyrics
 
+Part 2A
+```{r}
+#Using ts_lyrics, create a new column called line with one line containing the character string for each line of Taylor Swift’s songs.
+
+ts_lyrics <-
+    ts_lyrics %>%
+    unnest_tokens(
+        output = line,
+        input = Lyrics,
+        token = "lines"
+    )
+
+#How many lines in Taylor Swift’s lyrics contain the word “hello”? For full credit, show all the rows in ts_lyrics that have “hello” in the line column and report how many rows there are in total.
+
+str_subset(ts_lyrics$line, "hello") # all the lyrics with "hello"
+sum(str_count(ts_lyrics$line, "hello")) #number of times it appears
+
+#How many lines in Taylor Swift’s lyrics contain the word “goodbye”? For full credit, show all the rows in ts_lyrics that have “goodbye” in the line column and report how many rows there are in total.
+
+str_subset(ts_lyrics$line, "goodbye") # all the lyrics with "goodbye"
+sum(str_count(ts_lyrics$line, "goodbye")) #number of times it appears
+
+```
+Part 2B
+```{r}
+#Repeat the same analysis for b_lyrics as described in Part 2A.
+
+b_lyrics <-
+    b_lyrics %>%
+    unnest_tokens(
+        output = line,
+        input = line,
+        token = "lines"
+    )
+
+str_subset(b_lyrics$line, "hello") # all the lyrics with "hello"
+sum(str_count(b_lyrics$line, "hello")) #number of times it appears
+
+str_subset(b_lyrics$line, "goodbye") # all the lyrics with "goodbye"
+sum(str_count(b_lyrics$line, "goodbye")) #number of times it appears
+
+```
+Part 2C
+
+```{r}
+#Tokenize each lyrical line by words.
+b_lyrics <-
+    b_lyrics %>%
+    unnest_tokens(
+        output = word,
+        input = line,
+        token = "words"
+    )
+
+#Remove the “stopwords”.
+
+no_stop <- b_lyrics %>% #note to self, created a seperate data set so I would not mess up the original one
+  filter(!word %in% stop_words$word)
+
+#Calculate the total number for each word in the lyrics.
+
+b_sum <- no_stop %>%
+  group_by(word) %>% 
+  summarise(n=n()) 
+
+b_sum %>% 
+  slice_sample(n=10)#done to make things easier to view on the PDF
+
+#Using the “bing” sentiment lexicon, add a column to the summarized data frame adding the “bing” sentiment lexicon.
+
+b_sum <- b_sum %>%
+    inner_join(get_sentiments("bing"), by ="word")
+
+b_sum %>% 
+  slice_sample(n=10)
+
+#Sort the rows from most frequent to least frequent words
+
+b_sum <- b_sum %>% 
+  arrange(-n)
+
+b_sum %>% 
+  head()
+
+#Only keep the top 25 most frequent words.
+
+b25 <- b_sum[1:25,]
+
+#Auto print the wrangled tibble data frame.
+print(b25)
+
+#Use ggplot2 to create a bar plot with the top words on the y-axis and the frequency of each word on the x-axis. Color each bar by the sentiment of each word from the “bing” sentiment lexicon. Bars should be ordered from most frequent on the top to least frequent on the bottom of the plot.
+
+ggplot(data=b25, aes(x = fct_reorder(word, n), y = n, fill=sentiment))+
+  geom_col()+
+  coord_flip() #need to add all of the stuff to get full credit
+
+#Create a word cloud of the top 25 most frequent words.
+library(wordcloud)
+
+b25 %>%
+    with(wordcloud(word, n, max.words = 25))
+```
+Part 2D
+```{r}
+#Tokenize each lyrical line by words.
+ts_lyrics <-
+    ts_lyrics %>%
+    unnest_tokens(
+        output = word,
+        input = line,
+        token = "words"
+    )
+
+#Remove the “stopwords”.
+
+no_stop_ts <- ts_lyrics %>% #note to self, created a seperate data set so I would not mess up the original one
+  filter(!word %in% stop_words$word)
+
+#Calculate the total number for each word in the lyrics.
+
+ts_sum <- no_stop_ts %>%
+  group_by(word) %>% 
+  summarise(n=n()) 
+
+ts_sum %>% 
+  slice_sample(n=10)#done to make things easier to view on the PDF
+
+#Using the “bing” sentiment lexicon, add a column to the summarized data frame adding the “bing” sentiment lexicon.
+
+ts_sum <- ts_sum %>%
+    inner_join(get_sentiments("bing"), by ="word")
+
+ts_sum %>% 
+  slice_sample(n=10)
+
+#Sort the rows from most frequent to least frequent words
+
+ts_sum <- ts_sum %>% 
+  arrange(-n)
+
+ts_sum %>% 
+  head()
+
+#Only keep the top 25 most frequent words.
+
+ts25 <- ts_sum[1:25,]
+
+#Auto print the wrangled tibble data frame.
+print(ts25)
+
+#Use ggplot2 to create a bar plot with the top words on the y-axis and the frequency of each word on the x-axis. Color each bar by the sentiment of each word from the “bing” sentiment lexicon. Bars should be ordered from most frequent on the top to least frequent on the bottom of the plot.
+
+ggplot(data=ts25, aes(x = fct_reorder(word, n), y = n, fill=sentiment))+
+  geom_col()+
+  coord_flip() #need to add all of the stuff to get full credit
+
+#Create a word cloud of the top 25 most frequent words.
+
+ts25 %>%
+    with(wordcloud(word, n, max.words = 25))
+```
+Part 2E
+
+```{r}
+#Tokenize each lyrical line by words.
+#This was already done in part 2D but I am putting the code in here as a comment as a reminder
+
+#ts_lyrics <-
+    #ts_lyrics %>%
+    #unnest_tokens(
+        #output = word,
+        #input = line,
+        #token = "words"
+    #)
+
+#Remove the “stopwords”.
+
+no_stop_ts <- ts_lyrics %>% 
+  filter(!ts_lyrics$word %in% stop_words$word)
+
+#Calculate the total number for each word in the lyrics for each Album.
+ts_sum2 <- no_stop_ts %>%
+  group_by(Album,word) %>% 
+  summarise(n=n()) 
+
+ts_sum2 %>% 
+  head()
+
+#Using the “afinn” sentiment lexicon, add a column to the summarized data frame adding the “afinn” sentiment lexicon.
+library(textdata)
+
+ts_sum2 <- ts_sum2 %>%
+    inner_join(get_sentiments("afinn"), by ="word")
+
+ts_sum2 %>% 
+  head()
+
+#Calculate the average sentiment score for each Album.
+sumdat <- ts_sum2 %>% 
+  group_by(Album) %>% 
+  summarize(mean = mean(value))
+
+#Auto print the wrangled tibble data frame.
+print(sumdat)
+
+#Join the wrangled data frame from Part 1A (album sales in millions) filtered down to US sales with the wrangled data frame from #6 above (average sentiment score for each album).
+#this will be a combination of sumdat and sales_us
+#need to rename sales_us title to album
+
+sales_us <- sales_us %>% 
+  rename(Album = title)
+
+taylor_all <- inner_join(sumdat, sales_us, by = "Album")
+
+print(taylor_all)
+
+#Using ggplot2, create a scatter plot of the average sentiment score for each album (y-axis) and the album release data along the x-axis. Make the size of each point the album sales in millions.
+
+#Add a horizontal line at y-intercept=0.
+ggplot(data = taylor_all, aes(x = released, y = mean, size = `Sales (in Millions)`))+
+  geom_point()+
+  geom_hline(yintercept = 0,color = "red", linetype = "dashed")#need to add all the stuff here
+
+#Write 2-3 sentences interpreting the plot answering the question “How has the sentiment of Taylor Swift’s albums have changed over time?”. Add a title, subtitle, and useful axis labels.
+```
+```{r}
+sessioninfo::session_info()
+```
 
